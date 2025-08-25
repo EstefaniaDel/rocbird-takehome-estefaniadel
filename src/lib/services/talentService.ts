@@ -3,6 +3,7 @@ import prisma from "@/lib/prisma";
 import { TalentFormValues } from "@/lib/validations/talent";
 
 type SortDirection = 'asc' | 'desc';
+type SortField = 'createdAt' | 'seniority' | 'fullName';
 
 interface TalentFilters {
   search?: string;
@@ -14,7 +15,8 @@ export const getTalentsList = async (
   page: number, 
   limit: number, 
   sort: SortDirection = 'asc',
-  filters: TalentFilters = {}
+  filters: TalentFilters = {},
+  sortField: SortField = 'createdAt'
 ) => {
   const whereClause: Prisma.TalentWhereInput = {};
   
@@ -37,19 +39,25 @@ export const getTalentsList = async (
     }
   }
 
+  const orderBy: Prisma.TalentOrderByWithRelationInput =
+    sortField === 'seniority'
+      ? { seniority: sort }
+      : sortField === 'fullName'
+      ? { fullName: sort }
+      : { createdAt: sort };
+
   const talents = await prisma.talent.findMany({
     where: whereClause,
     skip: (page - 1) * limit,
     take: limit,
-    orderBy: {
-      createdAt: sort,
-    },
+    orderBy,
     select: {
       id: true,
       fullName: true,
       role: true,
       seniority: true,
       status: true,
+      createdAt: true,
     },
   });
 
@@ -101,6 +109,7 @@ export const getTechnicalLeads = async () => {
     orderBy: {
       fullName: 'asc',
     },
+    distinct: ['fullName'],
     select: {
       id: true,
       fullName: true,

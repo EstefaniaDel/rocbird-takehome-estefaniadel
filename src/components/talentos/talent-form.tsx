@@ -207,8 +207,8 @@ export function TalentForm({ talentId, initialValues, leaders, mentors, excludeF
                 </FormLabel>
                 <div>
                   <Select 
-                    onValueChange={field.onChange} 
-                    value={field.value || ""}
+                    onValueChange={(v) => field.onChange(v === "__NONE__" ? undefined : v)}
+                    value={field.value ?? ""}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -242,8 +242,8 @@ export function TalentForm({ talentId, initialValues, leaders, mentors, excludeF
                 </FormLabel>
                 <div>
                   <Select 
-                    onValueChange={field.onChange}
-                    value={field.value || ""}
+                    onValueChange={(v) => field.onChange(v === "__NONE__" ? undefined : v)}
+                    value={field.value ?? ""}
                   >
                     <FormControl>
                       <SelectTrigger>

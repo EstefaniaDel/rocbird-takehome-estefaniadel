@@ -12,6 +12,8 @@ interface TalentsPageProps {
     search?: string;
     seniority?: string;
     status?: string;
+    sort?: string;
+    sortField?: string;
   };
 }
 
@@ -22,16 +24,24 @@ export default async function TalentsPage({ searchParams }: TalentsPageProps) {
   const search = params?.search || "";
   const seniority = params?.seniority || "";
   const status = params?.status || "";
+  const sort = params?.sort === 'asc' ? 'asc' : 'desc'; 
+  const sortField =
+    params?.sortField === 'seniority'
+      ? 'seniority'
+      : params?.sortField === 'fullName'
+      ? 'fullName'
+      : 'createdAt'; 
   
   const { data, totalPages } = await getTalentsList(
     page, 
     limit, 
-    'desc', 
+    sort, 
     {
       search, 
       seniority,
       status
-    }
+    },
+    sortField
   );
 
   return (
@@ -54,7 +64,9 @@ export default async function TalentsPage({ searchParams }: TalentsPageProps) {
           search,
           seniority,
           status
-        }} 
+        }}
+        initialSort={sort}
+        initialSortField={sortField}
       />
       
       <TalentList 
