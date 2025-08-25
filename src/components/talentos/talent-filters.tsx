@@ -11,7 +11,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Card, CardContent } from "@/components/ui/card";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { SearchIcon, FilterIcon, XCircleIcon } from "lucide-react";
 import { SENIORITY_OPTIONS, STATUS_OPTIONS } from "@/constants/talentEnums";
 
@@ -30,6 +34,8 @@ export function TalentFilters({ initialFilters = {} }: TalentFiltersProps) {
   const [search, setSearch] = useState(initialFilters.search || "");
   const [seniority, setSeniority] = useState(initialFilters.seniority || "all");
   const [status, setStatus] = useState(initialFilters.status || "all");
+
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   
   const applyFilters = () => {
     const params = new URLSearchParams();
@@ -41,6 +47,7 @@ export function TalentFilters({ initialFilters = {} }: TalentFiltersProps) {
     params.append("page", "1");
     
     router.push(`${pathname}?${params.toString()}`);
+    setIsPopoverOpen(false);
   };
   
   const clearFilters = () => {
@@ -50,8 +57,13 @@ export function TalentFilters({ initialFilters = {} }: TalentFiltersProps) {
     router.push(pathname);
   };
   
-  const hasActiveFilters = search.trim() || seniority !== "all" || status !== "all";
+  const hasActiveFilters = search.trim() !== "" || seniority !== "all" || status !== "all";
   
+  const activeAdvancedFilterCount = [
+    seniority !== "all",
+    status !== "all"
+  ].filter(Boolean).length;
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       applyFilters();
@@ -59,68 +71,91 @@ export function TalentFilters({ initialFilters = {} }: TalentFiltersProps) {
   };
 
   return (
-    <Card className="mb-6">
-      <CardContent className="pt-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="relative">
-            <Input
-              placeholder="Buscar por nombre..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              onKeyDown={handleKeyDown}
-              className="pl-8"
-            />
-            <SearchIcon className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+    <div className="flex items-center gap-2 mb-6">
+      <div className="flex items-center flex-grow border rounded px-3 h-10 bg-white focus-within:ring-2 focus-within:ring-primary transition">
+      <SearchIcon className="h-4 w-4 text-muted-foreground mr-2" />
+      <input
+        type="text"
+        placeholder="Buscar talento por nombre..."
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        onKeyDown={handleKeyDown}
+        className="flex-1 bg-transparent outline-none border-none text-base placeholder:text-muted-foreground"
+      />
+    </div>
+
+      <Button
+        variant="outline"
+        onClick={clearFilters}
+        className="h-10"
+        disabled={!hasActiveFilters}
+        aria-disabled={!hasActiveFilters}
+      >
+        <XCircleIcon className="mr-2 h-4 w-4" />
+        Limpiar
+      </Button>
+      <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
+        <PopoverTrigger asChild>
+          <Button variant="outline" className="h-10 relative">
+        <FilterIcon className="mr-2 h-4 w-4" />
+        Filtros
+        {activeAdvancedFilterCount > 0 && (
+          <span className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs">
+            {activeAdvancedFilterCount}
+          </span>
+        )}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-80" align="end">
+          <div className="grid gap-4">
+        <div className="space-y-2">
+          <h4 className="font-medium leading-none">Filtros Avanzados</h4>
+          <p className="text-sm text-muted-foreground">
+            Ajusta los criterios para encontrar al profesional ideal.
+          </p>
+        </div>
+        <div className="grid gap-2">
+          <div className="grid grid-cols-3 items-center gap-4">
+            <label htmlFor="seniority" className="text-sm font-medium">Seniority</label>
+            <Select value={seniority} onValueChange={setSeniority}>
+          <SelectTrigger id="seniority" className="col-span-2 h-8">
+            <SelectValue placeholder="Todos" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos</SelectItem>
+            {SENIORITY_OPTIONS.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+            {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+            </Select>
           </div>
-          
-          <Select value={seniority} onValueChange={setSeniority}>
-            <SelectTrigger>
-              <SelectValue placeholder="Seniority" />
+          <div className="grid grid-cols-3 items-center gap-4">
+             <label htmlFor="status" className="text-sm font-medium">Estado</label>
+             <Select value={status} onValueChange={setStatus}>
+            <SelectTrigger id="status" className="col-span-2 h-8">
+              <SelectValue placeholder="Todos" />
             </SelectTrigger>
             <SelectContent>
-              {SENIORITY_OPTIONS.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          
-          <Select value={status} onValueChange={setStatus}>
-            <SelectTrigger>
-              <SelectValue placeholder="Estado" />
-            </SelectTrigger>
-            <SelectContent>
+              <SelectItem value="all">Todos</SelectItem>
               {STATUS_OPTIONS.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
+            <SelectItem key={option.value} value={option.value}>
+              {option.label}
+            </SelectItem>
               ))}
             </SelectContent>
           </Select>
-          
-          <div className="flex gap-2">
-            <Button 
-              variant="default" 
-              onClick={applyFilters}
-              className="flex-1"
-            >
-              <FilterIcon className="mr-2 h-4 w-4" />
-              Filtrar
-            </Button>
-            
-            {hasActiveFilters && (
-              <Button 
-                variant="outline" 
-                onClick={clearFilters}
-              >
-                <XCircleIcon className="h-4 w-4" />
-                <span className="sr-only">Limpiar filtros</span>
-              </Button>
-            )}
           </div>
         </div>
-      </CardContent>
-    </Card>
+        <div className="flex justify-end gap-2 mt-2">
+            <Button onClick={applyFilters} size="sm">
+          Aplicar Filtros
+            </Button>
+        </div>
+          </div>
+        </PopoverContent>
+      </Popover>
+    </div>
   );
 }

@@ -21,18 +21,21 @@ export default async function TalentDetailPage({ params }: TalentDetailPageProps
   }
 
   return (
-    <div className="container py-8 max-w-xl">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Detalles del Talento</h1>
+    <div className="container py-10 max-w-3xl mx-auto">
+      <div className="flex justify-between items-center mb-8">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Detalles del Talento</h1>
+          <p className="text-muted-foreground mt-1">{talent.fullName}</p>
+        </div>
         
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" asChild>
+        <div className="flex gap-3">
+          <Button variant="outline" size="sm" className="shadow-sm" asChild>
             <Link href="/talentos">
               <ArrowLeftIcon className="mr-2 h-4 w-4" />
               Volver
             </Link>
           </Button>
-          <Button variant="default" size="sm" asChild>
+          <Button variant="default" size="sm" className="shadow-sm" asChild>
             <Link href={`/talentos/${talent.id}/edit`}>
               <PencilIcon className="mr-2 h-4 w-4" />
               Editar
@@ -41,7 +44,11 @@ export default async function TalentDetailPage({ params }: TalentDetailPageProps
         </div>
       </div>
       
-      <TalentDetail talent={talent} />
+      <div className="bg-white shadow-sm rounded-lg border overflow-hidden">
+        <div className="p-6">
+          <TalentDetail talent={talent} />
+        </div>
+      </div>
     </div>
   );
 }

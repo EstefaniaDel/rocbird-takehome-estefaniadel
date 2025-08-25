@@ -1,3 +1,5 @@
+"use client";
+
 import {
     Table,
     TableBody,
@@ -12,7 +14,10 @@ import {
   import { Button } from "@/components/ui/button";
   import { PencilIcon, TrashIcon } from "lucide-react";
   import { SENIORITY_LABELS } from "@/constants/talentEnums";
-  
+  import { useState } from "react";
+  import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
+  import { useRouter } from "next/navigation";
+
   type TalentData = {
     id: string;
     fullName: string;
@@ -30,19 +35,44 @@ import {
   function getSeniorityLabel(value: string) {
     return SENIORITY_LABELS[value];
   }
-  
+
+
   export function TalentList({ talents, currentPage, totalPages }: TalentListProps) {
+    const [deleteId, setDeleteId] = useState<string | null>(null);
+    const [loading, setLoading] = useState(false);
+    const router = useRouter();
+
+    const handleDelete = async () => {
+      if (!deleteId) return;
+      setLoading(true);
+      try {
+        const res = await fetch(`/api/talentos/${deleteId}`, {
+          method: "DELETE",
+        });
+        if (!res.ok) {
+          throw new Error("Error al eliminar el talento");
+        }
+        setDeleteId(null);
+        router.refresh();
+      } catch (err) {
+        alert("No se pudo eliminar el talento.");
+      } finally {
+        setLoading(false);
+      }
+    };
+  
+    
     return (
       <div className="space-y-4">
-        <div className="rounded-md border">
+        <div className="border rounded-md overflow-hidden">
           <Table>
             <TableHeader>
-              <TableRow>
-                <TableHead>Nombre</TableHead>
-                <TableHead>Rol</TableHead>
-                <TableHead>Seniority</TableHead>
-                <TableHead>Estado</TableHead>
-                <TableHead className="text-right">Acciones</TableHead>
+              <TableRow className="bg-muted/50 hover:bg-muted/50">
+                <TableHead className="font-medium">Nombre</TableHead>
+                <TableHead className="font-medium">Rol</TableHead>
+                <TableHead className="font-medium">Seniority</TableHead>
+                <TableHead className="font-medium">Estado</TableHead>
+                <TableHead className="text-right font-medium">Acciones</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -55,8 +85,8 @@ import {
               ) : (
                 talents.map((talent) => (
                   <TableRow key={talent.id}>
-                    <TableCell className="font-medium">
-                      <Link href={`/talentos/${talent.id}`} className="hover:underline">
+                    <TableCell>
+                      <Link href={`/talentos/${talent.id}`} className="font-medium text-primary hover:underline">
                         {talent.fullName}
                       </Link>
                     </TableCell>
@@ -65,27 +95,27 @@ import {
                     <TableCell>
                       <StatusBadge status={talent.status} />
                     </TableCell>
-                    <TableCell className="text-right space-x-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        asChild
-                      >
-                        <Link href={`/talentos/${talent.id}/edit`}>
-                          <PencilIcon className="h-4 w-4" />
-                          <span className="sr-only">Editar</span>
-                        </Link>
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        asChild
-                      >
-                        <Link href={`/talentos/${talent.id}/delete`}>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="hover:bg-primary/10 text-primary"
+                          asChild
+                        >
+                          <Link href={`/talentos/${talent.id}/edit`}>
+                            <PencilIcon className="h-3.5 w-3.5" />
+                          </Link>
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="hover:bg-destructive/10 text-destructive"
+                          onClick={() => setDeleteId(talent.id)}
+                        >
                           <TrashIcon className="h-4 w-4" />
-                          <span className="sr-only">Eliminar</span>
-                        </Link>
-                      </Button>
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))
@@ -95,8 +125,29 @@ import {
         </div>
         
         {talents.length > 0 && (
-          <Pagination currentPage={currentPage} totalPages={totalPages} />
+          <div className="flex justify-between items-center pt-2">
+            <Pagination currentPage={currentPage} totalPages={totalPages} />
+          </div>
         )}
+
+      <Dialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Eliminar Talento</DialogTitle>
+            <DialogDescription>
+              ¿Estás seguro de que deseas eliminar este talento? Esta acción no se puede deshacer.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteId(null)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleDelete} disabled={loading}>
+              {loading ? "Borrando..." : "Eliminar"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       </div>
     );
   }
