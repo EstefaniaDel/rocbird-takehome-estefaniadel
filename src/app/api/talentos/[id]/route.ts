@@ -2,15 +2,13 @@ import { NextResponse } from 'next/server';
 import * as talentService from '@/lib/services/talentService';
 import { talentSchema } from '@/lib/validations/talent';
 
-interface RouteContext {
-  params: {
-    id: string;
-  };
-}
 
-export async function GET(request: Request, context: RouteContext) {
+export async function GET(
+  request: Request,
+  { params }: { params: { id: string } } 
+) {
   try {
-    const { id } = context.params;
+    const { id } = params; 
 
     const talent = await talentService.getTalentById(id);
 
@@ -28,9 +26,12 @@ export async function GET(request: Request, context: RouteContext) {
   }
 }
 
-export async function PUT(request: Request, context: RouteContext) {
+export async function PUT(
+  request: Request,
+  { params }: { params: { id: string } } 
+) {
   try {
-    const { id } = context.params;
+    const { id } = params;
     const body = await request.json();
 
     const validation = talentSchema.partial().safeParse(body);
@@ -51,9 +52,12 @@ export async function PUT(request: Request, context: RouteContext) {
   }
 }
 
-export async function DELETE(request: Request, context: RouteContext) {
+export async function DELETE(
+  request: Request,
+  { params }: { params: { id: string } } 
+) {
   try {
-    const { id } = context.params;
+    const { id } = params;
 
     await talentService.deleteTalent(id);
 
