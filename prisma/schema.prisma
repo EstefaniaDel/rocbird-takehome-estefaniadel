@@ -1,22 +1,69 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
   output   = "../src/generated/prisma"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
+enum TalentStatus {
+  ACTIVE
+  INACTIVE
+}
 
-// schema
+enum InteractionType {
+  CALL
+  ONE_ON_ONE
+  FEEDBACK
+  GENERAL
+}
 
+enum InteractionStatus {
+  STARTED
+  PENDING
+  COMPLETED
+}
 
-// definir schemas de users y posts
-// tener todo tipado (types.ts)
+model Talent {
+  id             String            @id @default(cuid())
+  fullName       String
+  seniority      String
+  role           String
+  status         TalentStatus      @default(ACTIVE)
+  leaderId       String?
+  mentorId       String?
 
+  leader         TechnicalLead?    @relation("LeaderOf", fields: [leaderId], references: [id])
+  mentor         TechnicalLead?    @relation("MentorOf", fields: [mentorId], references: [id])
+  interactions   Interaction[]
 
-// post, get, patch/update (typo date)
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+}
+
+model TechnicalLead {
+  id               String    @id @default(cuid())
+  fullName         String    @unique
+
+  talentsLed       Talent[]  @relation("LeaderOf")
+  talentsMentored  Talent[]  @relation("MentorOf")
+
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+}
+
+model Interaction {
+  id                  String            @id @default(cuid())
+  type                InteractionType
+  date                DateTime
+  details             String           
+  status              InteractionStatus @default(STARTED)
+  modifiedAt          DateTime          @updatedAt
+
+  talentId            String
+  talent              Talent            @relation(fields: [talentId], references: [id], onDelete: Cascade)
+
+  createdAt           DateTime          @default(now())
+}
