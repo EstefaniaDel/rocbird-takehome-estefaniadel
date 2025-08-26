@@ -39,10 +39,11 @@ function getSeniorityLabel(value: string) {
 
 function formatDate(d: string | Date) {
   const date = new Date(d);
-  return date.toLocaleDateString(undefined, {
+  return date.toLocaleDateString('es-AR', {
     year: "numeric",
     month: "short",
-    day: "numeric",
+    day: "2-digit",
+    timeZone: "America/Argentina/Buenos_Aires"
   });
 }
 
